@@ -1,0 +1,47 @@
+{
+  "_설명": "카테고리마다 프롬프트에 넣을 근거. company는 사규 파일과 조 번호, law는 docs/law/ 아래 파일(파일 전체). out_of_scope는 근거 없이 넘긴다.",
+  "categories": {
+    "work": {
+      "name": "근무·휴가·휴직",
+      "company": [
+        {"file": "docs/company/취업규칙.md", "articles": [3, 4, [11, 19], [20, 30], [31, 38]]}
+      ],
+      "law": ["docs/law/work.md"]
+    },
+    "pay": {
+      "name": "급여·수당·퇴직금",
+      "company": [
+        {"file": "docs/company/취업규칙.md", "articles": [3, 4, [39, 55], [56, 60]]}
+      ],
+      "law": ["docs/law/pay.md"]
+    },
+    "welfare": {
+      "name": "복리후생",
+      "company": [
+        {"file": "docs/company/취업규칙.md", "articles": [3, 4]},
+        {"file": "docs/company/복리후생규정.md", "articles": [[1, 12]]}
+      ],
+      "law": ["docs/law/welfare.md"]
+    },
+    "contract": {
+      "name": "입사·계약·퇴사",
+      "company": [
+        {"file": "docs/company/취업규칙.md", "articles": [[1, 5], [6, 10], [61, 68], [69, 76], 88]}
+      ],
+      "law": ["docs/law/contract.md"]
+    },
+    "harassment": {
+      "name": "괴롭힘·고충",
+      "company": [
+        {"file": "docs/company/취업규칙.md", "articles": [3, 4, [77, 86]]}
+      ],
+      "law": ["docs/law/harassment.md"]
+    },
+    "out_of_scope": {
+      "name": "범위 밖",
+      "company": [],
+      "law": [],
+      "handoff": "경영지원팀(내선 2041~2043) 또는 고용노동부 고객상담센터 1350(평일 09~18시)"
+    }
+  }
+}

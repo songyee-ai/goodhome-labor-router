@@ -1,0 +1,114 @@
+{
+  "n": 50,
+  "errors": [],
+  "classification": {
+    "accuracy": 0.9583333333333334,
+    "macro_f1": 0.9595238095238096,
+    "per_class": {
+      "work": {
+        "precision": 0.9,
+        "recall": 0.9,
+        "f1": 0.9,
+        "support": 10
+      },
+      "pay": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 10
+      },
+      "welfare": {
+        "precision": 0.8571428571428571,
+        "recall": 0.8571428571428571,
+        "f1": 0.8571428571428571,
+        "support": 7
+      },
+      "contract": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "harassment": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "out_of_scope": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      }
+    },
+    "confusion": {
+      "work": {
+        "work": 9,
+        "welfare": 1
+      },
+      "pay": {
+        "pay": 10
+      },
+      "welfare": {
+        "welfare": 6,
+        "work": 1
+      },
+      "contract": {
+        "contract": 8
+      },
+      "harassment": {
+        "harassment": 8
+      },
+      "out_of_scope": {
+        "out_of_scope": 5
+      }
+    }
+  },
+  "unclear_handed_off": "2/2",
+  "tool_accuracy": 0.72,
+  "answer_accuracy": 0.86,
+  "by_type": {
+    "normal": {
+      "n": 19,
+      "tool": 14,
+      "answer": 17
+    },
+    "composite": {
+      "n": 6,
+      "tool": 5,
+      "answer": 5
+    },
+    "part_time": {
+      "n": 9,
+      "tool": 4,
+      "answer": 6
+    },
+    "boundary": {
+      "n": 7,
+      "tool": 4,
+      "answer": 6
+    },
+    "partial_handoff": {
+      "n": 2,
+      "tool": 2,
+      "answer": 2
+    },
+    "out_of_scope": {
+      "n": 5,
+      "tool": 5,
+      "answer": 5
+    },
+    "ambiguous": {
+      "n": 2,
+      "tool": 2,
+      "answer": 2
+    }
+  },
+  "verify_retried": 1,
+  "verify_blocked": 0,
+  "avg_seconds": 4.772,
+  "input_tokens": 543058,
+  "output_tokens": 15943,
+  "wall_seconds": 24.9
+}
