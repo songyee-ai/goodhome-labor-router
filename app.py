@@ -7,6 +7,7 @@
 새 질문 예시는 data/examples.json에서 가져오며, 저장된 평가 기록은 별도 재생 화면으로 보여 준다.
 """
 import json
+from html import escape
 import os
 import re
 from pathlib import Path
@@ -21,7 +22,185 @@ import context
 ROOT = Path(__file__).resolve().parent
 EXAMPLE_IDS = ["E01", "E03", "E04", "E07", "E08", "E10"]  # 칸마다 하나씩 + 범위 밖 + 두 칸 복합
 
-st.set_page_config(page_title="굿홈앤리빙 노동 문의 안내", layout="wide")
+BRAND_MARK_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 54" role="img" aria-label="굿홈앤리빙 심벌"><defs><mask id="weave"><path fill="white" d="M4.32 21.6 27 3.78 49.68 21.6v25.92L42.12 51.84H4.32Z"/><g fill="black"><rect x="15.12" y="24.84" width="6.48" height="17.28" rx=".54"/><rect x="29.16" y="18.9" width="6.48" height="23.22" rx=".54"/><rect x="15.12" y="31.32" width="26.46" height="5.4" rx=".54"/></g></mask></defs><rect width="54" height="54" fill="#656A83" mask="url(#weave)"/></svg>"""
+
+st.set_page_config(page_title="굿홈앤리빙 · 구성원 안내", page_icon=BRAND_MARK_SVG, layout="wide")
+
+st.markdown("""
+<style>
+:root { --gh-primary: #656A83; --gh-ink: #45475B; --gh-paper: #FFFCF5; --gh-butter: #FFF0A6; --gh-lilac: #EFEDF6; --gh-mist: #DCE9F0; --gh-muted: #626575; --gh-line: #E3E1E4; }
+.stApp { background: var(--gh-paper); color: var(--gh-ink); color-scheme: light; font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+[data-testid="stHeader"] { background: transparent; }
+[data-testid="stMainBlockContainer"] { max-width: 1160px; padding-top: 2.3rem; padding-bottom: 4rem; }
+[data-testid="stSidebar"] { background: var(--gh-lilac); color: var(--gh-ink); border-right: 1px solid var(--gh-line); }
+[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding-top: 1.6rem; }
+[data-testid="stSidebar"] h3 { font-size: 1rem; color: var(--gh-ink); }
+[data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li { line-height: 1.85; }
+h1, h2, h3 { color: var(--gh-ink); letter-spacing: -.045em; }
+[data-testid="stCaptionContainer"] { color: var(--gh-muted); }
+[data-testid="stRadioOption"][data-selected="true"] > div > div:first-child { background-color: var(--gh-primary); border-color: var(--gh-primary); }
+[data-testid="stVerticalBlockBorderWrapper"] > div { border-radius: 18px; border-color: var(--gh-line); background: #fff; }
+[data-testid="stMetric"] { background: #fff; border: 1px solid var(--gh-line); border-radius: 14px; padding: 16px 20px; }
+[data-testid="stMetricLabel"] { color: var(--gh-muted); font-size: .8rem; }
+[data-testid="stMetricValue"] { color: var(--gh-ink); font-size: 1.25rem; font-weight: 650; letter-spacing: -.03em; }
+[data-baseweb="select"] > div { border-radius: 12px; border-color: var(--gh-line); background: #fff; color: var(--gh-ink); min-height: 48px; }
+[data-baseweb="tab-list"] { gap: 24px; border-bottom: 1px solid var(--gh-line); }
+button[data-baseweb="tab"] { padding: 12px 2px; font-weight: 600; color: var(--gh-muted); }
+button[data-baseweb="tab"][aria-selected="true"] { color: var(--gh-ink); }
+[data-baseweb="tab-highlight"] { background-color: var(--gh-primary); height: 3px; }
+[data-testid="stExpander"] { border-color: var(--gh-line); border-radius: 12px; background: #F1F6F8; }
+[data-testid="stButton"] button, [data-testid="stFormSubmitButton"] button { border-radius: 10px; }
+[data-testid="stFormSubmitButton"] button[kind^="primary"] { background: var(--gh-primary); border-color: var(--gh-primary); color: #fff; }
+.gh-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 28px; color: var(--gh-ink); font-weight: 750; font-size: 1.1rem; letter-spacing: -.04em; }
+.gh-logo { display: block; flex: 0 0 40px; width: 40px; height: 40px; }
+.gh-logo svg { display: block; width: 40px; height: 40px; }
+.gh-brand small { display: block; font-size: .7rem; letter-spacing: .1em; color: var(--gh-muted); font-weight: 500; margin-top: 3px; }
+.gh-hero { border: 1px solid #E9DDAB; border-radius: 22px; padding: 32px 36px; background: var(--gh-butter); margin-bottom: 24px; }
+.gh-eyebrow { font-size: .75rem; color: var(--gh-ink); letter-spacing: .13em; font-weight: 700; margin-bottom: 10px; }
+.gh-hero h1 { font-size: clamp(1.8rem, 3.4vw, 2.65rem); line-height: 1.28; margin: 0 0 13px; padding: 0; color: var(--gh-ink); font-weight: 750; }
+.gh-hero p { margin: 0; color: var(--gh-ink); font-size: .96rem; }
+.gh-pill { display: inline-block; border-radius: 999px; padding: 5px 11px; font-size: .73rem; font-weight: 650; color: var(--gh-ink); border: 1px solid #DAD9DD; background: var(--gh-paper); margin-top: 18px; }
+.gh-section { font-size: 1.05rem; font-weight: 700; color: var(--gh-ink); letter-spacing: -.035em; margin: 10px 0 5px; }
+.gh-question { padding: 20px 24px; border-radius: 12px; background: var(--gh-lilac); border-left: 3px solid var(--gh-primary); margin-bottom: 20px; color: var(--gh-ink); font-size: 1.04rem; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gh-label { font-size: .72rem; font-weight: 700; letter-spacing: .1em; color: var(--gh-muted); margin: 3px 0 10px; }
+.gh-footer { margin-top: 24px; padding-top: 15px; border-top: 1px solid var(--gh-line); color: var(--gh-muted); font-size: .76rem; line-height: 1.7; }
+@media (max-width: 640px) { .gh-hero { padding: 24px 20px; } [data-testid="stMainBlockContainer"] { padding-top: 1.3rem; } .gh-question { padding: 16px; } }
+
+/* 시스템 테마와 관계없이 확정한 밝은 브랜드 화면의 글자·입력·메뉴를 함께 지정한다. */
+.stApp, [data-baseweb="popover"], [data-baseweb="modal"], [data-testid="stDialog"] {
+  --gh-primary: #656A83; --gh-ink: #45475B; --gh-paper: #FFFCF5;
+  --gh-muted: #626575; --gh-lilac: #EFEDF6; --gh-mist: #DCE9F0; --gh-line: #E3E1E4;
+  color-scheme: light;
+}
+.stApp [data-testid="stMarkdownContainer"],
+.stApp [data-testid="stMarkdownContainer"] :is(p, li, strong, em),
+.stApp [data-testid="stWidgetLabel"],
+.stApp [data-testid="stWidgetLabel"] p,
+.stApp [data-testid="stRadioOption"],
+.stApp [data-testid="stRadioOption"] p,
+.stApp [data-testid="stExpander"] summary,
+.stApp [data-testid="stExpander"] summary p,
+.stApp [data-testid="stMetricLabel"] p {
+  color: var(--gh-ink) !important;
+}
+.stApp [data-testid="stCaptionContainer"],
+.stApp [data-testid="stCaptionContainer"] p { color: var(--gh-muted) !important; }
+.stApp [data-testid="stRadioOption"] > div > div:first-child {
+  background-color: #fff; border: 1px solid var(--gh-primary);
+}
+.stApp [data-testid="stRadioOption"][data-selected="true"] > div > div:first-child {
+  background-color: var(--gh-primary);
+}
+.stApp [data-testid="stRadioOption"] > div > div:first-child > div { background-color: #fff; }
+.stApp [data-testid="stMetricValue"], .stApp [data-testid="stMetricValue"] div {
+  color: var(--gh-ink) !important;
+}
+.stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+.stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div > div,
+.stApp [data-testid="stTextArea"] [data-baseweb="textarea"],
+.stApp [data-testid="stTextArea"] textarea,
+.stApp [data-testid="stTextInput"] [data-baseweb="input"],
+.stApp [data-testid="stTextInput"] input {
+  background: #fff !important; color: var(--gh-ink) !important;
+  -webkit-text-fill-color: var(--gh-ink);
+  border-color: #969AAD !important;
+}
+.stApp :is(textarea, input)::placeholder {
+  color: var(--gh-muted) !important; -webkit-text-fill-color: var(--gh-muted); opacity: 1;
+}
+.stApp [data-testid="stSelectbox"] svg { color: var(--gh-ink); fill: currentColor; }
+.stApp [data-testid="stForm"] { border-color: var(--gh-line); background: #fff; }
+.stApp [data-testid="stButton"] button,
+.stApp [data-testid="stFormSubmitButton"] button {
+  color: var(--gh-ink) !important; background: #fff !important; border-color: #969AAD !important;
+}
+.stApp [data-testid="stButton"] button p,
+.stApp [data-testid="stFormSubmitButton"] button p { color: inherit !important; }
+.stApp [data-testid="stFormSubmitButton"] button[kind^="primary"] {
+  background: var(--gh-primary) !important; color: #fff !important;
+}
+.stApp :is([data-testid="stButton"], [data-testid="stFormSubmitButton"]) button:disabled {
+  background: #EFEDF6 !important; color: #626575 !important; opacity: 1;
+}
+.stApp button:focus-visible, .stApp input:focus-visible,
+.stApp textarea:focus-visible, .stApp summary:focus-visible {
+  outline: 2px solid var(--gh-primary); outline-offset: 3px;
+}
+.stApp [data-testid="stMarkdownContainer"] code {
+  color: var(--gh-ink) !important; background: #EFEDF6 !important;
+}
+.stApp [data-testid="stMarkdownContainer"] a { color: #4F5576; text-decoration: underline; }
+.stApp [data-testid="stAlertContainer"] {
+  background: #EAF0F5 !important; color: var(--gh-ink) !important; border: 1px solid #CAD6E0;
+}
+.stApp [data-testid="stAlertContainer"] svg { color: #4F5576; }
+.stApp [data-testid="stMarkdownContainer"] :is(.st-badge, .stMarkdownBadge) {
+  background: #EFEDF6 !important; color: var(--gh-ink) !important;
+}
+.stApp hr { border-color: var(--gh-line); }
+[data-baseweb="popover"], [data-baseweb="popover"] > div,
+[data-baseweb="popover"] [role="listbox"], [data-baseweb="popover"] [role="menu"],
+[data-baseweb="popover"] [data-baseweb="menu"],
+[data-baseweb="modal"] [role="dialog"] { background: #fff !important; color: #45475B !important; }
+[data-baseweb="popover"] :is(li, [role="option"], [role="menuitem"], button),
+[data-baseweb="popover"] :is(li, [role="option"], [role="menuitem"]) :is(div, span, p) {
+  color: #45475B !important; background-color: #fff !important;
+}
+[data-baseweb="popover"] [role="option"][aria-selected="true"],
+[data-baseweb="popover"] [role="option"]:hover,
+[data-baseweb="popover"] [role="option"][aria-selected="true"] :is(div, span) {
+  background-color: #EFEDF6 !important; color: #45475B !important;
+}
+
+
+/* 현재 Streamlit의 React Aria 선택창·탭·포털 메뉴도 같은 팔레트로 처리한다. */
+.stApp [data-testid="stSelectbox"] [role="group"],
+.stApp [data-testid="stSelectbox"] input,
+.stApp [data-testid="stSelectbox"] button {
+  background: #fff !important; color: #45475B !important;
+  -webkit-text-fill-color: #45475B;
+}
+.stApp [data-testid="stSelectbox"] [role="group"] { border: 1px solid #969AAD; border-radius: 12px; }
+.stApp [data-testid="stTabs"] [role="tablist"] { gap: 24px; border-bottom: 1px solid #E3E1E4; }
+.stApp [data-testid="stTabs"] [role="tab"] { color: #626575 !important; background: transparent; }
+.stApp [data-testid="stTabs"] [role="tab"] p { color: inherit !important; }
+.stApp [data-testid="stTabs"] [role="tab"][aria-selected="true"] { color: #45475B !important; border-color: #656A83; }
+[data-testid="stSelectboxVirtualDropdown"],
+[data-testid="stSelectboxVirtualDropdown"] [role="listbox"],
+[data-testid="stSelectboxVirtualDropdown"] [role="option"],
+[data-testid="stSelectboxVirtualDropdown"] [data-item-hl] {
+  background: #fff !important; color: #45475B !important; color-scheme: light;
+}
+[data-testid="stSelectboxVirtualDropdown"] [role="option"]:is([data-selected="true"],[data-focused="true"]),
+[data-testid="stSelectboxVirtualDropdown"] [role="option"]:is([data-selected="true"],[data-focused="true"]) [data-item-hl] {
+  background: #EFEDF6 !important; color: #45475B !important;
+}
+
+
+.stApp [data-testid="stButton"] button { min-height: 44px; height: auto; }
+.stApp [data-testid="stButton"] button [data-testid="stMarkdownContainer"],
+.stApp [data-testid="stButton"] button p {
+  white-space: normal !important; overflow: visible !important;
+  text-overflow: clip !important; -webkit-line-clamp: unset !important;
+}
+.stApp [data-testid="stTextArea"] textarea {
+  border: 1px solid #969AAD !important; border-radius: 10px; padding: 12px;
+}
+.stApp [data-testid="stIconMaterial"] { color: #45475B !important; }
+
+
+.stApp [data-testid="stExpander"] summary,
+.stApp [data-testid="stExpander"] summary:hover,
+.stApp [data-testid="stExpander"] details[open] > summary {
+  background: #EAF0F5 !important; color: #45475B !important;
+}
+.stApp [data-testid="stFormSubmitButton"] button[kind^="primary"]:not(:disabled) :is(p,span) {
+  color: #fff !important;
+}
+.stApp [data-testid="stFormSubmitButton"] button:disabled :is(p,span) { color: #626575 !important; }
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ── 준비 ──────────────────────────────────────────────────────────────
@@ -124,7 +303,7 @@ def tool_badges(tools: list[str]) -> str:
         return "없음"
     out = []
     for t in tools:
-        color = "orange" if t == context.HANDOFF_TOOL else "blue"
+        color = "orange" if t == context.HANDOFF_TOOL else "gray"
         out.append(f":{color}-badge[{t}]")
     return " ".join(out)
 
@@ -215,36 +394,43 @@ def show_verify(s: dict):
 
 
 def show_record(rec: dict):
+    if rec.get("error"):
+        st.error(f"처리 중 오류가 났습니다: {rec['error']}")
+        return
+    s = rec["state"]
+    log = s.get("verify_log") or []
+    vtxt = "검증 없음 · 넘김" if not log else ("통과" if log[-1].get("ok") else "확인 필요")
+    chunks = evidence_chunks(s)
+    used = [cid for cid in cited_ids(s, chunks) if cid in chunks]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("담당 분야", category_name(s.get("category")).split(" (")[0])
+    c2.metric("인용한 근거", f"{len(used)}개")
+    c3.metric("기록된 검증 결과", vtxt)
+    st.write("")
     with st.container(border=True):
-        st.markdown(f"**질문** · {md_safe(rec['question'])}")
-        if rec.get("error"):
-            st.error(f"처리 중 오류가 났습니다: {rec['error']}")
-            return
-        s = rec["state"]
+        st.markdown('<div class="gh-label">구성원의 질문</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="gh-question">{escape(rec["question"])}</div>', unsafe_allow_html=True)
         kind, note = outcome(s)
         if kind.startswith("handoff"):
-            st.warning("**담당 창구로 넘김** — " + note)
+            st.warning("담당 창구 확인이 필요해요 · " + note)
         elif kind == "partial":
-            st.info("**일부 넘김** — " + note)
-
+            st.info("일부 내용은 담당 창구에 확인해 주세요 · " + note)
+        st.markdown('<div class="gh-label">규정에 따른 안내</div>', unsafe_allow_html=True)
         st.markdown(md_safe(s.get("final_answer") or "(답변 없음)"))
-
+        st.divider()
+        st.markdown("**호출한 도구**")
+        st.markdown(tool_badges(s.get("tools_called") or []))
         usage = s.get("usage") or {}
-        log = s.get("verify_log") or []
-        vtxt = "검증 없음(넘김)" if not log else ("검증 통과" if log[-1].get("ok") else "검증 실패")
-        st.markdown(
-            tool_badges(s.get("tools_called") or []) + "  "
-            + f" · {vtxt}"
-            + f" · {s.get('seconds', '?')}초"
-            + f" · 입력 토큰 {usage.get('input_tokens', 0):,} / 출력 토큰 {usage.get('output_tokens', 0):,}"
-        )
-
+        st.caption(f"기록된 처리 시간 {s.get('seconds', '?')}초 · 입력 {usage.get('input_tokens', 0):,} / 출력 {usage.get('output_tokens', 0):,} 토큰")
+        st.write("")
         t1, t2, t3 = st.tabs(["처리 경로", "근거", "검증"])
         with t1:
             show_route(s)
         with t2:
+            st.markdown("**근거로 쓴 문서 부분**")
             show_evidence(s)
         with t3:
+            st.markdown("**검증 결과**")
             show_verify(s)
 
 
@@ -271,40 +457,42 @@ def pick_example(q: str):
 
 
 with st.sidebar:
+    st.markdown(f'<div class="gh-brand"><span class="gh-logo">{BRAND_MARK_SVG}</span><div>굿홈앤리빙<small>구성원 안내 데스크</small></div></div>', unsafe_allow_html=True)
     mode = st.radio("이용 방식", ["저장된 실행 기록 보기", "새 질문 보내기"])
-    st.subheader("개선 스위치")
-    for switch in ("STRICT_SECONDARY", "HANDOFF_STRICT", "ANSWER_RULES_V2", "BOUNDARY_EXAMPLES"):
-        st.caption(f"{switch}: {'켜짐' if os.getenv(switch, '0') == '1' else '꺼짐'}")
-    st.header("이 도구는")
-    st.write("가상 회사 **굿홈앤리빙**(홈패브릭·생활용품) 직원의 노동 문의를 담당 칸으로 나누고, "
-             "그 칸의 사규·법령 근거만으로 답한 뒤 답변을 코드로 검증합니다.")
-    st.caption("회사와 사규는 실존하지 않는 가상의 것입니다.")
-
-    st.subheader("칸 목록")
+    st.divider()
+    st.subheader("어떤 내용을 안내하나요?")
+    st.caption("근무부터 복리후생까지, 분야에 맞는 사규와 법령을 확인합니다.")
     for key, name, desc in category_guide():
         tool = context.TOOL_OF.get(key, context.HANDOFF_TOOL)
-        with st.expander(f"{name} · `{key}`"):
-            st.caption(f"도구: `{tool}`")
+        with st.expander(name):
             st.write(desc)
-
-    st.subheader("사용 모델")
-    st.markdown(f"- 분류: `{agent.ROUTER_MODEL}`\n- 답변: `{agent.ANSWER_MODEL}`\n"
-                f"- 넘김 기준 확신도: {agent.CONF_THRESHOLD}")
-
-    st.info("답변은 회사 사규와 일부 노동 법령 근거 범위 안에서만 하며, 법률 자문이 아닙니다. "
-            "정확한 판단은 경영지원팀이나 고용노동부 고객상담센터(1350)에 확인하세요.")
-    if st.button("대화 지우기", key="clear"):
+            st.caption(f"조회 도구 · {tool}")
+    st.divider()
+    with st.expander("실행 설정"):
+        st.caption("현재 새 질문에 적용할 설정입니다. 저장 기록의 설정과는 다를 수 있습니다.")
+        st.markdown(f"**분류 모델** `{agent.ROUTER_MODEL}`\n\n**답변 모델** `{agent.ANSWER_MODEL}`\n\n**넘김 기준 확신도** {agent.CONF_THRESHOLD}")
+        st.markdown("**개선 스위치**")
+        for switch in ("STRICT_SECONDARY", "HANDOFF_STRICT", "ANSWER_RULES_V2", "BOUNDARY_EXAMPLES"):
+            st.caption(f"{switch} · {'켜짐' if os.getenv(switch, '0') == '1' else '꺼짐'}")
+    if mode == "새 질문 보내기" and st.button("대화 지우기", key="clear", width="stretch"):
         st.session_state.history = []
+    st.markdown('<div class="gh-footer">굿홈앤리빙과 사규는 가상 설정입니다.<br>안내는 법률 자문이 아닙니다. 정확한 판단은 경영지원팀 또는 고용노동부 고객상담센터 1350에 확인해 주세요.</div>', unsafe_allow_html=True)
 
-st.title("굿홈앤리빙 노동 문의 안내")
-st.caption("질문하면 칸 분류 → 넘김 판단 → 그 칸의 근거 조회 → 답변 → 코드 검증 순서로 처리합니다.")
+st.markdown("""<div class="gh-hero">
+<div class="gh-eyebrow">굿홈앤리빙 · 구성원 지원</div>
+<h1>궁금한 회사 규정,<br>근거와 함께 확인하세요.</h1>
+<p>근무 · 급여 · 복리후생 · 계약 · 고충까지<br>답변의 근거와 확인 과정을 한곳에서 살펴보세요.</p>
+<span class="gh-pill">사규와 법령에 기반한 안내</span>
+</div>""", unsafe_allow_html=True)
 
 if mode == "저장된 실행 기록 보기":
-    st.info("평가 기록 재생 · 저장된 답변과 당시 검증 결과를 표시합니다. 모델을 호출하지 않습니다.")
-    st.caption("기록 설정: STRICT_SECONDARY=1. 사이드바 스위치는 새 질문에 적용할 현재 설정입니다. 당시 검증 결과는 현재 검증기로 다시 판정한 결과가 아닙니다.")
+    st.markdown('<div class="gh-section">저장된 실행 기록 보기</div>', unsafe_allow_html=True)
+    st.caption("평가 기록 재생 · 새 답변을 생성하지 않으며 모델을 호출하지 않습니다.")
     path = ROOT / "runs" / "05_strict_secondary_r1" / "results.jsonl"
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    index = st.selectbox("문항 선택", range(len(rows)), format_func=lambda i: f"{rows[i]['id']} · {rows[i].get('question', '오류 기록')}")
+    index = st.selectbox("살펴볼 질문을 선택하세요", range(len(rows)), format_func=lambda i: f"{rows[i]['id']} · {rows[i].get('question', '오류 기록')}")
+    st.caption("기록 설정: STRICT_SECONDARY=1 · 검증은 당시 결과, 근거 원문은 현재 문서를 표시합니다.")
+    st.write("")
     row = rows[index]
     state = dict(row)
     state.update(category=row.get("pred_category"), secondary=row.get("pred_secondary"), final_answer=row.get("answer", ""))
@@ -316,10 +504,9 @@ else:
 
     st.markdown("**예시 질문**")
     examples = load_examples()
-    cols = st.columns(3)
-    for i, ex in enumerate(examples):
-        cols[i % 3].button(ex["question"], key=f"ex_{ex['id']}", width="stretch",
-                           on_click=pick_example, args=(ex["question"],), disabled=not key_ok)
+    for ex in examples:
+        st.button(ex["question"], key=f"ex_{ex['id']}", width="stretch",
+                  on_click=pick_example, args=(ex["question"],), disabled=not key_ok)
 
     with st.form("ask_form", clear_on_submit=True):
         text = st.text_area("질문", placeholder="예: 연차는 언제부터 생겨요?", height=90)
