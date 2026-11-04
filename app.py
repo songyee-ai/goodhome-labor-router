@@ -199,6 +199,51 @@ button[data-baseweb="tab"][aria-selected="true"] { color: var(--gh-ink); }
 }
 .stApp [data-testid="stFormSubmitButton"] button:disabled :is(p,span) { color: #626575 !important; }
 
+/* 소개 영역: 한 줄 머리글로 줄여 답변·근거가 첫 화면에 들어오게 한다. */
+.gh-hero { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 22px 28px; border-radius: 18px; margin-bottom: 28px; }
+.gh-hero h1 { font-size: clamp(1.3rem, 2.1vw, 1.65rem); line-height: 1.35; margin: 0 0 6px; }
+.gh-hero p { font-size: .92rem; }
+.gh-hero .gh-eyebrow { margin-bottom: 6px; }
+.gh-hero .gh-pill { margin-top: 0; }
+
+/* 상태 요약 카드와 의미 색 배지: 통과(초록)·확인 필요(빨강)·넘김(주황)을 글자와 색으로 함께 구분한다. */
+.gh-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 4px 0 22px; }
+.gh-stat { background: #fff; border: 1px solid var(--gh-line); border-radius: 14px; padding: 16px 20px; box-shadow: 0 1px 2px rgba(69, 71, 91, .06); }
+.gh-stat-label { font-size: .78rem; color: var(--gh-muted); margin-bottom: 8px; }
+.gh-stat-value { font-size: 1.2rem; font-weight: 700; color: var(--gh-ink); letter-spacing: -.03em; line-height: 1.4; }
+.gh-chip { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 3px 12px; font-weight: 700; font-size: .95rem; line-height: 1.6; }
+.gh-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.gh-chip.gh-sm { font-size: .74rem; padding: 1px 9px; gap: 5px; vertical-align: 2px; margin-left: 4px; }
+.gh-ok { background: #E7F4EC; color: #1F6B3F; }
+.gh-bad { background: #FBE9E9; color: #9B2C2C; }
+.gh-warn { background: #FFF1D6; color: #855600; }
+.gh-tool { display: inline-block; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .8rem; padding: 3px 10px; border-radius: 8px; margin: 0 6px 4px 0; background: #ECEEF6; color: #3F4566; border: 1px solid #DADDEB; }
+.gh-tool-handoff { background: #FFF1D6; color: #855600; border-color: #F0D9A6; }
+.gh-tools { margin: 2px 0 8px; }
+
+/* 답변 속 근거 표시 [취업규칙 제13조]를 작은 배지로 */
+.gh-cite { display: inline-block; font-size: .74em; font-weight: 600; padding: 0 8px; border-radius: 999px; background: #E9EEF8; color: #3F4F7A; border: 1px solid #D5DDEE; white-space: nowrap; margin: 0 2px; vertical-align: 1px; line-height: 1.7; }
+
+/* 넘김·재작성 안내: 주의(주황)와 안내(파랑)를 나눈다 */
+.gh-alert { border: 1px solid; border-radius: 12px; padding: 13px 18px; margin: 0 0 18px; font-size: .95rem; line-height: 1.65; }
+.gh-alert strong { font-weight: 700; margin-right: 6px; }
+.gh-alert-warn { background: #FFF8E8; border-color: #F0D9A6; color: #6B4800; }
+.gh-alert-info { background: #EEF3FA; border-color: #D5DDEE; color: #36456B; }
+
+/* 사이드바 분야 목록: 테두리 상자 대신 가벼운 메뉴 줄 */
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"],
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] details { border: none !important; background: transparent !important; box-shadow: none !important; margin-bottom: 0; }
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] summary,
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] details[open] > summary { background: transparent !important; border-radius: 8px; padding-top: 6px; padding-bottom: 6px; }
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] summary:hover { background: rgba(101, 106, 131, .09) !important; }
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] summary p { font-weight: 600; }
+.stApp [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding-top: 0; }
+
+/* 선택된 탭 밑줄도 브랜드색으로(테마 설정이 적용되지 않는 버전 대비) */
+.stApp [data-testid="stTabs"] [role="tab"][aria-selected="true"] { box-shadow: inset 0 -3px 0 #656A83; }
+
+@media (max-width: 640px) { .gh-stats { grid-template-columns: 1fr; } .gh-hero { padding: 18px 20px; } }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -299,13 +344,29 @@ def node_path(s: dict) -> str:
 # ── 그리기 ────────────────────────────────────────────────────────────
 
 def tool_badges(tools: list[str]) -> str:
+    """조회 도구는 남색, handoff는 주황 배지(HTML)."""
     if not tools:
         return "없음"
     out = []
     for t in tools:
-        color = "orange" if t == context.HANDOFF_TOOL else "gray"
-        out.append(f":{color}-badge[{t}]")
-    return " ".join(out)
+        cls = "gh-tool gh-tool-handoff" if t == context.HANDOFF_TOOL else "gh-tool"
+        out.append(f'<span class="{cls}">{escape(t)}</span>')
+    return '<div class="gh-tools">' + "".join(out) + "</div>"
+
+
+def chip(text: str, tone: str, small: bool = False) -> str:
+    """tone: ok(초록) | bad(빨강) | warn(주황). 색만이 아니라 글자로도 상태를 적는다."""
+    return f'<span class="gh-chip gh-{tone}{" gh-sm" if small else ""}">{escape(text)}</span>'
+
+
+def alert(kind: str, title: str, body: str) -> str:
+    return f'<div class="gh-alert gh-alert-{kind}"><strong>{escape(title)}</strong>{escape(body)}</div>'
+
+
+def answer_html(text: str) -> str:
+    """답변 본문의 [근거 id]를 배지로 바꾼다. 모델 출력은 HTML로 해석되지 않게 먼저 이스케이프한다."""
+    safe = md_safe(escape(text or "(답변 없음)", quote=False))
+    return re.sub(r"\[([^\[\]\n]{1,80})\]", lambda m: f'<span class="gh-cite">{m.group(1)}</span>', safe)
 
 
 def show_route(s: dict):
@@ -331,7 +392,7 @@ def show_route(s: dict):
         st.markdown(f"범위 안이고 확신도 {conf_txt} ≥ 기준값 {th} → **답변 진행**")
 
     st.markdown("**3. 호출한 도구**")
-    st.markdown(tool_badges(s.get("tools_called") or []))
+    st.markdown(tool_badges(s.get("tools_called") or []), unsafe_allow_html=True)
     st.caption("처리 순서: " + node_path(s))
 
 
@@ -372,11 +433,11 @@ def show_verify(s: dict):
         st.info("넘김 경로라 답변 검증을 하지 않았습니다.")
         return
     if len(log) > 1:
-        st.warning(f"1회차 검증에 걸려 문제 목록을 돌려주고 답변을 다시 썼습니다(총 {len(log)}회 작성).")
+        st.markdown(alert("warn", "다시 작성함", f"1회차 검증에 걸려 문제 목록을 돌려주고 답변을 다시 썼습니다(총 {len(log)}회 작성)."),
+                    unsafe_allow_html=True)
     for v in log:
-        ok = v.get("ok")
-        mark = ":green-badge[통과]" if ok else ":red-badge[실패]"
-        st.markdown(f"**{v.get('attempt', '?')}회차** {mark}")
+        mark = chip("통과", "ok", small=True) if v.get("ok") else chip("실패", "bad", small=True)
+        st.markdown(f"**{v.get('attempt', '?')}회차** {mark}", unsafe_allow_html=True)
         for p in v.get("problems") or []:
             st.markdown(f"- {md_safe(p)}")
         nums = v.get("checked_numbers") or []
@@ -399,27 +460,31 @@ def show_record(rec: dict):
         return
     s = rec["state"]
     log = s.get("verify_log") or []
-    vtxt = "검증 없음 · 넘김" if not log else ("통과" if log[-1].get("ok") else "확인 필요")
+    if not log:
+        verdict = chip("검증 없음 · 넘김", "warn")
+    else:
+        verdict = chip("통과", "ok") if log[-1].get("ok") else chip("확인 필요", "bad")
     chunks = evidence_chunks(s)
     used = [cid for cid in cited_ids(s, chunks) if cid in chunks]
-    c1, c2, c3 = st.columns(3)
-    c1.metric("담당 분야", category_name(s.get("category")).split(" (")[0])
-    c2.metric("인용한 근거", f"{len(used)}개")
-    c3.metric("기록된 검증 결과", vtxt)
-    st.write("")
+    area = escape(category_name(s.get("category")).split(" (")[0])
+    st.markdown(f"""<div class="gh-stats">
+<div class="gh-stat"><div class="gh-stat-label">담당 분야</div><div class="gh-stat-value">{area}</div></div>
+<div class="gh-stat"><div class="gh-stat-label">인용한 근거</div><div class="gh-stat-value">{len(used)}개</div></div>
+<div class="gh-stat"><div class="gh-stat-label">기록된 검증 결과</div><div class="gh-stat-value">{verdict}</div></div>
+</div>""", unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="gh-label">구성원의 질문</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="gh-question">{escape(rec["question"])}</div>', unsafe_allow_html=True)
         kind, note = outcome(s)
         if kind.startswith("handoff"):
-            st.warning("담당 창구 확인이 필요해요 · " + note)
+            st.markdown(alert("warn", "담당 창구 확인이 필요해요", note), unsafe_allow_html=True)
         elif kind == "partial":
-            st.info("일부 내용은 담당 창구에 확인해 주세요 · " + note)
+            st.markdown(alert("info", "일부는 담당 창구에 확인해 주세요", note), unsafe_allow_html=True)
         st.markdown('<div class="gh-label">규정에 따른 안내</div>', unsafe_allow_html=True)
-        st.markdown(md_safe(s.get("final_answer") or "(답변 없음)"))
+        st.markdown(answer_html(s.get("final_answer")), unsafe_allow_html=True)
         st.divider()
         st.markdown("**호출한 도구**")
-        st.markdown(tool_badges(s.get("tools_called") or []))
+        st.markdown(tool_badges(s.get("tools_called") or []), unsafe_allow_html=True)
         usage = s.get("usage") or {}
         st.caption(f"기록된 처리 시간 {s.get('seconds', '?')}초 · 입력 {usage.get('input_tokens', 0):,} / 출력 {usage.get('output_tokens', 0):,} 토큰")
         st.write("")
@@ -479,9 +544,11 @@ with st.sidebar:
     st.markdown('<div class="gh-footer">굿홈앤리빙과 사규는 가상 설정입니다.<br>안내는 법률 자문이 아닙니다. 정확한 판단은 경영지원팀 또는 고용노동부 고객상담센터 1350에 확인해 주세요.</div>', unsafe_allow_html=True)
 
 st.markdown("""<div class="gh-hero">
+<div>
 <div class="gh-eyebrow">굿홈앤리빙 · 구성원 지원</div>
-<h1>궁금한 회사 규정,<br>근거와 함께 확인하세요.</h1>
-<p>근무 · 급여 · 복리후생 · 계약 · 고충까지<br>답변의 근거와 확인 과정을 한곳에서 살펴보세요.</p>
+<h1>궁금한 회사 규정, 근거와 함께 확인하세요.</h1>
+<p>근무 · 급여 · 복리후생 · 계약 · 고충까지, 답변의 근거와 확인 과정을 한곳에서 살펴보세요.</p>
+</div>
 <span class="gh-pill">사규와 법령에 기반한 안내</span>
 </div>""", unsafe_allow_html=True)
 

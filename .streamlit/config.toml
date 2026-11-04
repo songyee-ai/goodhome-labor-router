@@ -1,0 +1,11 @@
+# 탭 밑줄·라디오·포커스 테두리 등 Streamlit 기본 강조색(빨강)을 브랜드 팔레트로 맞춘다.
+[theme]
+base = "light"
+primaryColor = "#656A83"
+backgroundColor = "#FFFCF5"
+secondaryBackgroundColor = "#EFEDF6"
+textColor = "#45475B"
+
+[client]
+# 데모·캡처 화면에 개발용 Deploy 버튼을 보이지 않는다
+toolbarMode = "viewer"
