@@ -1,0 +1,126 @@
+{
+  "n": 50,
+  "errors": [],
+  "classification": {
+    "accuracy": 0.9375,
+    "macro_f1": 0.941938178780284,
+    "macro_labels": [
+      "work",
+      "pay",
+      "welfare",
+      "contract",
+      "harassment",
+      "out_of_scope"
+    ],
+    "per_class": {
+      "work": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8,
+        "f1": 0.8421052631578948,
+        "support": 10
+      },
+      "pay": {
+        "precision": 0.9090909090909091,
+        "recall": 1.0,
+        "f1": 0.9523809523809523,
+        "support": 10
+      },
+      "welfare": {
+        "precision": 0.8571428571428571,
+        "recall": 0.8571428571428571,
+        "f1": 0.8571428571428571,
+        "support": 7
+      },
+      "contract": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "harassment": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "out_of_scope": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      }
+    },
+    "confusion": {
+      "work": {
+        "work": 8,
+        "welfare": 1,
+        "pay": 1
+      },
+      "pay": {
+        "pay": 10
+      },
+      "welfare": {
+        "welfare": 6,
+        "work": 1
+      },
+      "contract": {
+        "contract": 8
+      },
+      "harassment": {
+        "harassment": 8
+      },
+      "out_of_scope": {
+        "out_of_scope": 5
+      }
+    }
+  },
+  "unclear_handed_off": "2/2",
+  "n_errors": 0,
+  "tool_accuracy": 0.8,
+  "answer_accuracy": 0.82,
+  "tool_accuracy_all": 0.8,
+  "answer_accuracy_all": 0.82,
+  "by_type": {
+    "normal": {
+      "n": 19,
+      "tool": 15,
+      "answer": 17
+    },
+    "composite": {
+      "n": 6,
+      "tool": 4,
+      "answer": 4
+    },
+    "part_time": {
+      "n": 9,
+      "tool": 7,
+      "answer": 5
+    },
+    "boundary": {
+      "n": 7,
+      "tool": 6,
+      "answer": 6
+    },
+    "partial_handoff": {
+      "n": 2,
+      "tool": 1,
+      "answer": 2
+    },
+    "out_of_scope": {
+      "n": 5,
+      "tool": 5,
+      "answer": 5
+    },
+    "ambiguous": {
+      "n": 2,
+      "tool": 2,
+      "answer": 2
+    }
+  },
+  "verify_retried": 1,
+  "verify_blocked": 0,
+  "avg_seconds": 4.6544,
+  "input_tokens": 485400,
+  "output_tokens": 15442,
+  "wall_seconds": 26.8
+}
